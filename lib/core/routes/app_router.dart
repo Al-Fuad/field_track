@@ -8,9 +8,9 @@ import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/bottom_nav/presentation/pages/bottom_nav_page.dart';
 import '../../features/tasks/presentation/pages/tasks_page.dart';
 import '../../features/locations/presentation/pages/locations_page.dart';
-import '../../features/locations/domain/models/location_model.dart';
-import '../../features/new_location/presentation/pages/new_location_page.dart';
-import '../../features/edit_location/presentation/pages/edit_location_page.dart';
+import '../../features/locations/domain/entities/location.dart';
+import '../../features/locations/presentation/pages/new_location_page.dart';
+import '../../features/locations/presentation/pages/edit_location_page.dart';
 import '../../features/sync/presentation/pages/sync_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 
