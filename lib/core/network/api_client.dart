@@ -79,6 +79,19 @@ class ApiClient {
     return _processResponse(response);
   }
 
+  Future<dynamic> patch(
+    String endpoint, {
+    Map<String, dynamic>? headers,
+    dynamic body,
+  }) async {
+    final response = await _dio.patch(
+      endpoint,
+      data: body,
+      options: headers != null ? Options(headers: headers) : null,
+    );
+    return _processResponse(response);
+  }
+
   dynamic _processResponse(Response response) {
     final statusCode = response.statusCode;
     final responseData = response.data;
