@@ -1,35 +1,91 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:field_track/core/usecase/usecase.dart';
+import 'package:field_track/features/auth/domain/usecases/get_me_usecase.dart';
+import 'package:field_track/features/auth/domain/usecases/login_usecase.dart';
+import 'package:field_track/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:field_track/features/auth/domain/usecases/register_usecase.dart';
+
 part 'auth_event.dart';
 part 'auth_state.dart';
+
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc() : super(AuthInitial()) {
-    on<AuthLoginRequested>((event, emit) async {
-      emit(AuthLoading());
-      // Simulate network call
-      await Future.delayed(const Duration(seconds: 1));
-      if (event.email.isNotEmpty && event.password.length >= 6) {
-        // Mock user details based on email
-        final name = event.email.split('@').first;
-        final capitalizedName = name.isEmpty 
-            ? ''
-            : '${name[0].toUpperCase()}${name.substring(1)}';
-        emit(AuthAuthenticated(name: capitalizedName, email: event.email));
-      } else {
-        emit(const AuthFailure(error: 'Invalid email or password (min 6 chars)'));
-      }
-    });
-    on<AuthRegisterRequested>((event, emit) async {
-      emit(AuthLoading());
-      await Future.delayed(const Duration(seconds: 1));
-      if (event.name.isNotEmpty && event.email.isNotEmpty && event.password.length >= 6) {
-        emit(AuthAuthenticated(name: event.name, email: event.email));
-      } else {
-        emit(const AuthFailure(error: 'Please fill in all fields correctly (password min 6 chars)'));
-      }
-    });
-    on<AuthLogoutRequested>((event, emit) {
-      emit(AuthUnauthenticated());
-    });
+  final LoginUsecase loginUsecase;
+  final RegisterUsecase registerUsecase;
+  final LogoutUsecase logoutUsecase;
+  final GetMeUsecase getMeUsecase;
+
+  AuthBloc({
+    required this.loginUsecase,
+    required this.registerUsecase,
+    required this.logoutUsecase,
+    required this.getMeUsecase,
+  })  : super(AuthInitial()) {
+    on<AuthCheckRequested>(_onAuthCheckRequested);
+    on<AuthLoginRequested>(_onAuthLoginRequested);
+    on<AuthRegisterRequested>(_onAuthRegisterRequested);
+    on<AuthLogoutRequested>(_onAuthLogoutRequested);
+  }
+
+  Future<void> _onAuthCheckRequested(
+    AuthCheckRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await getMeUsecase(NoParams());
+    result.fold(
+      (failure) => emit(AuthUnauthenticated()),
+      (user) => emit(AuthAuthenticated(name: user.name, email: user.email)),
+    );
+  }
+
+  Future<void> _onAuthLoginRequested(
+    AuthLoginRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await loginUsecase(
+      LoginParams(email: event.email, password: event.password),
+    );
+    result.fold(
+      (failure) => emit(AuthFailure(error: failure.message)),
+      (response) => emit(AuthAuthenticated(
+        name: response.user.name,
+        email: response.user.email,
+      )),
+    );
+  }
+
+  Future<void> _onAuthRegisterRequested(
+    AuthRegisterRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await registerUsecase(
+      RegisterParams(
+        email: event.email,
+        password: event.password,
+        fullName: event.name,
+      ),
+    );
+    result.fold(
+      (failure) => emit(AuthFailure(error: failure.message)),
+      (response) => emit(AuthAuthenticated(
+        name: response.user.name,
+        email: response.user.email,
+      )),
+    );
+  }
+
+  Future<void> _onAuthLogoutRequested(
+    AuthLogoutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await logoutUsecase(NoParams());
+    result.fold(
+      (failure) => emit(AuthFailure(error: failure.message)),
+      (_) => emit(AuthUnauthenticated()),
+    );
   }
 }

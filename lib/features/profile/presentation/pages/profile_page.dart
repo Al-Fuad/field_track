@@ -30,8 +30,8 @@ class ProfilePage extends StatelessWidget {
               // User Info Card
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
-                  String name = 'John Doe';
-                  String email = 'john.doe@example.com';
+                  String name = '';
+                  String email = '';
                   if (state is AuthAuthenticated) {
                     name = state.name;
                     email = state.email;

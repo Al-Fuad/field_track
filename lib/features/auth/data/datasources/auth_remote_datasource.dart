@@ -53,7 +53,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     try {
       final response = await _apiClient.post(
         ApiEndpoint.register,
-        body: {'email': email, 'password': password, 'fullName': fullName},
+        body: {'email': email, 'password': password, 'full_name': fullName},
       );
       return AuthResponseModel.fromJson(response);
     } on DioException catch (e) {
@@ -90,7 +90,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       );
     }
   }
-  
+
   @override
   Future<UserModel> me() async {
     try {
