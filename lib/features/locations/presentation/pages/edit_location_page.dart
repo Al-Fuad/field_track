@@ -5,33 +5,39 @@ import '../../../../core/common/widgets/custom_button.dart';
 import '../../../../core/common/widgets/custom_text_field.dart';
 import '../../../../core/common/widgets/mock_map.dart';
 import '../../../../core/constant/app_color.dart';
-import '../../../locations/domain/models/location_model.dart';
-import '../../../locations/presentation/bloc/locations_bloc.dart';
-class NewLocationPage extends StatefulWidget {
-  const NewLocationPage({super.key});
+import '../../domain/entities/location.dart';
+import '../bloc/locations_bloc.dart';
+class EditLocationPage extends StatefulWidget {
+  final Location location;
+  const EditLocationPage({
+    super.key,
+    required this.location,
+  });
   @override
-  State<NewLocationPage> createState() => _NewLocationPageState();
+  State<EditLocationPage> createState() => _EditLocationPageState();
 }
-class _NewLocationPageState extends State<NewLocationPage> {
+class _EditLocationPageState extends State<EditLocationPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _latController = TextEditingController();
-  final _lngController = TextEditingController();
-  double _radius = 150.0; // default in meters
-  bool _isActive = true;
+  late TextEditingController _nameController;
+  late TextEditingController _latController;
+  late TextEditingController _lngController;
+  late double _radius;
+  late bool _isActive;
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.location.locationName);
+    _latController = TextEditingController(text: widget.location.latitude.toString());
+    _lngController = TextEditingController(text: widget.location.longitude.toString());
+    _radius = widget.location.radiusM;
+    _isActive = widget.location.isActive;
+  }
   @override
   void dispose() {
     _nameController.dispose();
     _latController.dispose();
     _lngController.dispose();
     super.dispose();
-  }
-  void _useCurrentLocation() {
-    setState(() {
-      _nameController.text = 'Downtown Branch';
-      _latController.text = '25.2048';
-      _lngController.text = '55.2708';
-    });
   }
   @override
   Widget build(BuildContext context) {
@@ -60,7 +66,7 @@ class _NewLocationPageState extends State<NewLocationPage> {
             ),
           ),
         ),
-        title: const Text('New location'),
+        title: const Text('Edit location'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -72,14 +78,6 @@ class _NewLocationPageState extends State<NewLocationPage> {
               children: [
                 // Map Widget
                 MockMap(radius: _radius),
-                const SizedBox(height: 16),
-                // Use current location button
-                CustomButton(
-                  text: 'Use my current location',
-                  style: CustomButtonStyle.dashed,
-                  icon: Icons.my_location,
-                  onPressed: _useCurrentLocation,
-                ),
                 const SizedBox(height: 24),
                 // Name field
                 CustomTextField(
@@ -201,22 +199,32 @@ class _NewLocationPageState extends State<NewLocationPage> {
                   ],
                 ),
                 const SizedBox(height: 36),
-                // Save button
+                // Update button
                 CustomButton(
-                  text: 'Save location',
+                  text: 'Update location',
                   onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      final loc = Location(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        name: _nameController.text.trim(),
-                        latitude: double.parse(_latController.text.trim()),
-                        longitude: double.parse(_lngController.text.trim()),
-                        radius: _radius,
-                        isActive: _isActive,
-                      );
-                      context.read<LocationsBloc>().add(AddLocation(loc));
-                      context.pop();
-                    }
+                    // if (_formKey.currentState!.validate()) {
+                    //   final updatedLoc = widget.location.copyWith(
+                    //     name: _nameController.text.trim(),
+                    //     latitude: double.parse(_latController.text.trim()),
+                    //     longitude: double.parse(_lngController.text.trim()),
+                    //     radius: _radius,
+                    //     isActive: _isActive,
+                    //   );
+                    //   context.read<LocationsBloc>().add(UpdateLocation(updatedLoc));
+                    //   context.pop();
+                    // }
+                  },
+                ),
+                const SizedBox(height: 16),
+                // Delete button
+                CustomButton(
+                  text: 'Delete location',
+                  style: CustomButtonStyle.danger,
+                  icon: Icons.delete_outline,
+                  onPressed: () {
+                    context.read<LocationsBloc>().add(DeleteLocation(widget.location.id));
+                    context.pop();
                   },
                 ),
               ],
