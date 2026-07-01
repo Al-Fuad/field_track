@@ -22,7 +22,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       'type': 'task'
     },
   ];
-  SyncBloc()
+  SyncBloc({required Object syncAllUsecase})
       : super(const SyncInitial(
           isOffline: true,
           pendingCount: 3,
