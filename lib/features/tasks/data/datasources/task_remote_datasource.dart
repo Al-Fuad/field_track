@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:field_track/core/errors/exceptions.dart';
 import 'package:field_track/core/network/api_client.dart';
@@ -11,14 +13,16 @@ abstract class TaskRemoteDatasource {
 }
 
 class TaskRemoteDatasourceImpl implements TaskRemoteDatasource {
-  final ApiClient _apiClient;
-  TaskRemoteDatasourceImpl(this._apiClient);
-  
+  final ApiClient apiClient;
+  TaskRemoteDatasourceImpl({required this.apiClient});
+
   @override
   Future<List<Task>> getAllTasks() async {
     try {
-      final response = await _apiClient.get(ApiEndpoint.todos);
-      return (response['data'] as List).map((e) => TaskModel.fromJson(e)).toList();
+      final response = await apiClient.get(ApiEndpoint.todos);
+      List<Task> ts = TaskModel.fromJsonList(response['data']);
+      log(ts.toString());
+      return ts;
     } on DioException catch (e) {
       if (e.response?.data != null && e.response?.data['error'] != null) {
         final errorData = e.response!.data['error'];
@@ -37,12 +41,16 @@ class TaskRemoteDatasourceImpl implements TaskRemoteDatasource {
   @override
   Future<Task> updateTask(String taskId, bool isCompleted) async {
     try {
-      final response = await _apiClient.patch(ApiEndpoint.todoId(taskId), body: {
-        'is_completed': isCompleted,
-        'updated_at': DateTime.now().toIso8601String(),
-      });
+      final response = await apiClient.patch(
+        ApiEndpoint.todoId(taskId),
+        body: {
+          'is_completed': isCompleted,
+          'updated_at': '${DateTime.now().toIso8601String().split('.').first}Z',
+        },
+      );
       return TaskModel.fromJson(response['data']);
     } on DioException catch (e) {
+      log(e.response.toString());
       if (e.response?.data != null && e.response?.data['error'] != null) {
         final errorData = e.response!.data['error'];
         throw ServerException(
@@ -55,6 +63,5 @@ class TaskRemoteDatasourceImpl implements TaskRemoteDatasource {
         message: 'Connection failed',
       );
     }
-    
   }
 }

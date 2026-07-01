@@ -7,7 +7,7 @@ import 'package:fpdart/fpdart.dart' hide Task;
 
 class TaskRepositoryImpl extends TaskRepository {
   final TaskRemoteDatasource taskRemoteDatasource;
-  TaskRepositoryImpl(this.taskRemoteDatasource);
+  TaskRepositoryImpl({required this.taskRemoteDatasource});
   @override
   Future<Either<Failure, List<Task>>> getAllTasks() async {
     try {

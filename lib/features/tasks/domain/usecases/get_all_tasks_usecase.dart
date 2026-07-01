@@ -6,7 +6,7 @@ import 'package:fpdart/fpdart.dart' hide Task;
 
 class GetAllTasksUsecase implements Usecase<List<Task>, NoParams> {
   final TaskRepository taskRepository;
-  GetAllTasksUsecase(this.taskRepository);
+  GetAllTasksUsecase({required this.taskRepository});
   @override
   Future<Either<Failure, List<Task>>> call(NoParams params) {
     return taskRepository.getAllTasks();

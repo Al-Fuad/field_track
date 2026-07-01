@@ -6,7 +6,7 @@ import 'package:fpdart/fpdart.dart' hide Task;
 
 class UpdateTaskUsecase implements Usecase<Task, UpdateTaskParams> {
   final TaskRepository taskRepository;
-  UpdateTaskUsecase(this.taskRepository);
+  UpdateTaskUsecase({required this.taskRepository});
   @override
   Future<Either<Failure, Task>> call(UpdateTaskParams params) {
     return taskRepository.updateTask(params.taskId, params.isCompleted);

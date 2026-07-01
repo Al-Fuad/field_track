@@ -1,8 +1,12 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/common/widgets/status_badge.dart';
 import '../../../../core/constant/app_color.dart';
 import '../bloc/tasks_bloc.dart';
+
 class TasksPage extends StatelessWidget {
   const TasksPage({super.key});
   @override
@@ -12,14 +16,14 @@ class TasksPage extends StatelessWidget {
     final primaryColor = isDark ? AppColor.primaryDark : AppColor.primaryLight;
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('My tasks'),
-            SizedBox(height: 4),
+            const Text('My tasks'),
+            const SizedBox(height: 4),
             Text(
-              'Monday, Jun 15',
-              style: TextStyle(
+              _getFormattedDate(),
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.normal,
                 color: Colors.grey,
@@ -34,8 +38,8 @@ class TasksPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (state is TasksLoaded) {
-            final progress = state.totalCount > 0 
-                ? state.completedCount / state.totalCount 
+            final progress = state.totalCount > 0
+                ? state.completedCount / state.totalCount
                 : 0.0;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,10 +50,14 @@ class TasksPage extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColor.surfaceDark : AppColor.surfaceLight,
+                      color: isDark
+                          ? AppColor.surfaceDark
+                          : AppColor.surfaceLight,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isDark ? AppColor.borderDark : AppColor.borderLight,
+                        color: isDark
+                            ? AppColor.borderDark
+                            : AppColor.borderLight,
                       ),
                     ),
                     child: Column(
@@ -79,10 +87,12 @@ class TasksPage extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: progress,
                             minHeight: 8,
-                            backgroundColor: isDark 
-                                ? AppColor.borderDark 
+                            backgroundColor: isDark
+                                ? AppColor.borderDark
                                 : AppColor.borderLight.withOpacity(0.5),
-                            valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              primaryColor,
+                            ),
                           ),
                         ),
                       ],
@@ -103,24 +113,35 @@ class TasksPage extends StatelessWidget {
                           },
                           borderRadius: BorderRadius.circular(24),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
-                              color: isSelected 
-                                  ? primaryColor 
-                                  : (isDark ? AppColor.surfaceDark : Colors.transparent),
+                              color: isSelected
+                                  ? primaryColor
+                                  : (isDark
+                                        ? AppColor.surfaceDark
+                                        : Colors.transparent),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                color: isSelected 
-                                    ? primaryColor 
-                                    : (isDark ? AppColor.borderDark : AppColor.borderLight),
+                                color: isSelected
+                                    ? primaryColor
+                                    : (isDark
+                                          ? AppColor.borderDark
+                                          : AppColor.borderLight),
                               ),
                             ),
                             child: Text(
                               filter,
                               style: TextStyle(
                                 color: isSelected
-                                    ? (isDark ? AppColor.backgroundDark : Colors.white)
-                                    : (isDark ? AppColor.textPrimaryDark : AppColor.textSecondaryLight),
+                                    ? (isDark
+                                          ? AppColor.backgroundDark
+                                          : Colors.white)
+                                    : (isDark
+                                          ? AppColor.textPrimaryDark
+                                          : AppColor.textSecondaryLight),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -138,7 +159,9 @@ class TasksPage extends StatelessWidget {
                           child: Text(
                             'No tasks found',
                             style: TextStyle(
-                              color: isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight,
+                              color: isDark
+                                  ? AppColor.textSecondaryDark
+                                  : AppColor.textSecondaryLight,
                             ),
                           ),
                         )
@@ -151,34 +174,46 @@ class TasksPage extends StatelessWidget {
                               padding: const EdgeInsets.only(bottom: 12.0),
                               child: InkWell(
                                 onTap: () {
-                                  context.read<TasksBloc>().add(ToggleTaskCompletion(task.id));
+                                  log(task.id);
+                                  context.read<TasksBloc>().add(
+                                    ToggleTaskCompletion(task.id),
+                                  );
                                 },
                                 borderRadius: BorderRadius.circular(16),
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: isDark ? AppColor.surfaceDark : AppColor.surfaceLight,
+                                    color: isDark
+                                        ? AppColor.surfaceDark
+                                        : AppColor.surfaceLight,
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: isDark ? AppColor.borderDark : AppColor.borderLight,
+                                      color: isDark
+                                          ? AppColor.borderDark
+                                          : AppColor.borderLight,
                                     ),
                                   ),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       // Custom Checkbox
                                       Container(
                                         width: 24,
                                         height: 24,
                                         decoration: BoxDecoration(
-                                          color: task.isCompleted 
-                                              ? primaryColor 
+                                          color: task.isCompleted
+                                              ? primaryColor
                                               : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                           border: Border.all(
-                                            color: task.isCompleted 
-                                                ? primaryColor 
-                                                : (isDark ? AppColor.borderDark : AppColor.borderLight),
+                                            color: task.isCompleted
+                                                ? primaryColor
+                                                : (isDark
+                                                      ? AppColor.borderDark
+                                                      : AppColor.borderLight),
                                             width: 2,
                                           ),
                                         ),
@@ -186,8 +221,8 @@ class TasksPage extends StatelessWidget {
                                             ? Icon(
                                                 Icons.check,
                                                 size: 16,
-                                                color: isDark 
-                                                    ? AppColor.backgroundDark 
+                                                color: isDark
+                                                    ? AppColor.backgroundDark
                                                     : Colors.white,
                                               )
                                             : null,
@@ -196,7 +231,8 @@ class TasksPage extends StatelessWidget {
                                       // Task Content
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               task.title,
@@ -206,15 +242,25 @@ class TasksPage extends StatelessWidget {
                                                     ? TextDecoration.lineThrough
                                                     : null,
                                                 color: task.isCompleted
-                                                    ? (isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight)
-                                                    : (isDark ? Colors.white : AppColor.textPrimaryLight),
+                                                    ? (isDark
+                                                          ? AppColor
+                                                                .textSecondaryDark
+                                                          : AppColor
+                                                                .textSecondaryLight)
+                                                    : (isDark
+                                                          ? Colors.white
+                                                          : AppColor
+                                                                .textPrimaryLight),
                                               ),
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
                                               task.description,
                                               style: TextStyle(
-                                                color: isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight,
+                                                color: isDark
+                                                    ? AppColor.textSecondaryDark
+                                                    : AppColor
+                                                          .textSecondaryLight,
                                                 fontSize: 13,
                                                 decoration: task.isCompleted
                                                     ? TextDecoration.lineThrough
@@ -228,18 +274,34 @@ class TasksPage extends StatelessWidget {
                                                   Icons.access_time,
                                                   size: 14,
                                                   color: task.isCompleted
-                                                      ? (isDark ? AppColor.completedTextDark : AppColor.completedTextLight)
-                                                      : (isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight),
+                                                      ? (isDark
+                                                            ? AppColor
+                                                                  .completedTextDark
+                                                            : AppColor
+                                                                  .completedTextLight)
+                                                      : (isDark
+                                                            ? AppColor
+                                                                  .textSecondaryDark
+                                                            : AppColor
+                                                                  .textSecondaryLight),
                                                 ),
                                                 const SizedBox(width: 6),
                                                 Text(
-                                                  task.time,
+                                                  _formatTaskTime(task),
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w600,
                                                     color: task.isCompleted
-                                                        ? (isDark ? AppColor.completedTextDark : AppColor.completedTextLight)
-                                                        : (isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight),
+                                                        ? (isDark
+                                                              ? AppColor
+                                                                    .completedTextDark
+                                                              : AppColor
+                                                                    .completedTextLight)
+                                                        : (isDark
+                                                              ? AppColor
+                                                                    .textSecondaryDark
+                                                              : AppColor
+                                                                    .textSecondaryLight),
                                                   ),
                                                 ),
                                               ],
@@ -269,5 +331,19 @@ class TasksPage extends StatelessWidget {
       ),
     );
   }
-}
 
+  String _getFormattedDate() {
+    final now = DateTime.now();
+    final weekday = DateFormat('EEEE').format(now);
+    final date = DateFormat('MMM d').format(now);
+    return '$weekday, $date';
+  }
+
+  String _formatTaskTime(task) {
+    if (task.isCompleted) {
+      return 'Done ${DateFormat('h:mm a').format(task.updatedAt)}';
+    } else {
+      return 'Due ${DateFormat('h:mm a').format(task.dueAt)}';
+    }
+  }
+}

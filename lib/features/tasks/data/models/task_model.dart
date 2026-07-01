@@ -16,10 +16,14 @@ class TaskModel extends Task {
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      isCompleted: json['isCompleted'] as bool,
-      dueAt: DateTime.parse(json['dueAt'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      isCompleted: json['is_completed'] as bool,
+      dueAt: DateTime.parse(json['due_at'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
     );
+  }
+
+  static List<TaskModel> fromJsonList(List<dynamic> jsonList) {
+    return jsonList.map((e) => TaskModel.fromJson(e)).toList();
   }
 }

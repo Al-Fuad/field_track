@@ -1,103 +1,115 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../domain/models/task_model.dart';
+import 'package:field_track/core/usecase/usecase.dart';
+import 'package:field_track/features/tasks/domain/entities/task.dart';
+// Adjust these imports based on your exact file structure
+import 'package:field_track/features/tasks/domain/usecases/get_all_tasks_usecase.dart';
+import 'package:field_track/features/tasks/domain/usecases/update_task_usecase.dart';
+
 part 'tasks_event.dart';
 part 'tasks_state.dart';
+
 class TasksBloc extends Bloc<TasksEvent, TasksState> {
-  // Initial mock tasks matching the screenshots
-  final List<Task> _tasks = [
-    const Task(
-      id: '1',
-      title: 'Take inventory count',
-      description: 'Count shelf stock and storage stock',
-      time: 'Done 9:30 AM',
-      isCompleted: true,
-    ),
-    const Task(
-      id: '2',
-      title: 'Visit branch manager',
-      description: 'Collect signed documents',
-      time: 'Due 10:00 AM',
-      isCompleted: false,
-    ),
-    const Task(
-      id: '3',
-      title: 'Verify delivery shipment',
-      description: 'Check items against the manifest',
-      time: 'Due 11:30 AM',
-      isCompleted: false,
-    ),
-    const Task(
-      id: '4',
-      title: 'Update store display',
-      description: 'Arrange promotional materials',
-      time: 'Due 2:00 PM',
-      isCompleted: false,
-    ),
-    const Task(
-      id: '5',
-      title: 'Submit daily report',
-      description: 'Log visit summary and photos',
-      time: 'Due 5:00 PM',
-      isCompleted: false,
-    ),
-  ];
-  TasksBloc() : super(TasksLoading()) {
-    on<LoadTasks>((event, emit) {
-      _emitTasks(emit, 'All');
-    });
-    on<ToggleTaskCompletion>((event, emit) {
-      final index = _tasks.indexWhere((task) => task.id == event.taskId);
-      if (index != -1) {
-        final task = _tasks[index];
-        final newIsCompleted = !task.isCompleted;
-        
-        String newTime;
-        if (newIsCompleted) {
-          // Format current hour/minute or use mock
-          newTime = 'Done 9:30 AM'; // Keep it simple and matching the design
-        } else {
-          // Revert to original due time
-          switch (task.id) {
-            case '1': newTime = 'Due 9:30 AM'; break;
-            case '2': newTime = 'Due 10:00 AM'; break;
-            case '3': newTime = 'Due 11:30 AM'; break;
-            case '4': newTime = 'Due 2:00 PM'; break;
-            case '5': newTime = 'Due 5:00 PM'; break;
-            default: newTime = 'Due';
-          }
-        }
-        _tasks[index] = task.copyWith(
-          isCompleted: newIsCompleted,
-          time: newTime,
-        );
-        String currentFilter = 'All';
-        if (state is TasksLoaded) {
-          currentFilter = (state as TasksLoaded).filter;
-        }
-        _emitTasks(emit, currentFilter);
-      }
-    });
-    on<FilterTasks>((event, emit) {
-      _emitTasks(emit, event.filter);
-    });
+  final GetAllTasksUsecase getAllTasksUsecase;
+  final UpdateTaskUsecase updateTaskUsecase;
+
+  TasksBloc({required this.getAllTasksUsecase, required this.updateTaskUsecase})
+    : super(TasksInitial()) {
+    on<LoadTasks>(_onLoadTasks);
+    on<FilterTasks>(_onFilterTasks);
+    on<ToggleTaskCompletion>(_onToggleTaskCompletion);
   }
-  void _emitTasks(Emitter<TasksState> emit, String filter) {
-    List<Task> filtered;
-    if (filter == 'Pending') {
-      filtered = _tasks.where((task) => !task.isCompleted).toList();
-    } else if (filter == 'Completed') {
-      filtered = _tasks.where((task) => task.isCompleted).toList();
-    } else {
-      filtered = List.from(_tasks);
+
+  Future<void> _onLoadTasks(LoadTasks event, Emitter<TasksState> emit) async {
+    emit(TasksLoading());
+    final result = await getAllTasksUsecase(NoParams());
+
+    result.fold(
+      (failure) => emit(TasksError(failure.message)),
+      (tasks) => emit(
+        TasksLoaded(
+          allTasks: tasks,
+          filteredTasks: tasks, // Initially, filtered tasks match all tasks
+        ),
+      ),
+    );
+  }
+
+  void _onFilterTasks(FilterTasks event, Emitter<TasksState> emit) {
+    if (state is TasksLoaded) {
+      final currentState = state as TasksLoaded;
+      List<Task> filtered;
+
+      if (event.filter == 'Completed') {
+        filtered = currentState.allTasks.where((t) => t.isCompleted).toList();
+      } else if (event.filter == 'Pending') {
+        filtered = currentState.allTasks.where((t) => !t.isCompleted).toList();
+      } else {
+        filtered = currentState.allTasks; // 'All'
+      }
+
+      emit(
+        currentState.copyWith(filteredTasks: filtered, filter: event.filter),
+      );
     }
-    final completed = _tasks.where((task) => task.isCompleted).length;
-    emit(TasksLoaded(
-      allTasks: List.from(_tasks),
-      filteredTasks: filtered,
-      filter: filter,
-      completedCount: completed,
-      totalCount: _tasks.length,
-    ));
+  }
+
+  Future<void> _onToggleTaskCompletion(
+    ToggleTaskCompletion event,
+    Emitter<TasksState> emit,
+  ) async {
+    if (state is TasksLoaded) {
+      final currentState = state as TasksLoaded;
+
+      // 1. Find the target task to determine its current status
+      final taskIndex = currentState.allTasks.indexWhere(
+        (t) => t.id == event.taskId,
+      );
+      if (taskIndex == -1) return;
+
+      final task = currentState.allTasks[taskIndex];
+      final newCompletionStatus = !task.isCompleted;
+
+      // 2. Call the UseCase to update the backend
+      final result = await updateTaskUsecase(
+        UpdateTaskParams(
+          taskId: event.taskId,
+          isCompleted: newCompletionStatus,
+        ),
+      );
+
+      result.fold(
+        (failure) {
+          // If update fails, you could emit an error state here or handle it via a listener for a Snackbar
+        },
+        (updatedTask) {
+          // 3. Update the local lists with the fresh task data from the server
+          final updatedAllTasks = List<Task>.from(currentState.allTasks);
+          updatedAllTasks[taskIndex] = updatedTask;
+
+          // 4. Re-apply the current filter so the UI updates correctly
+          List<Task> newlyFiltered;
+          if (currentState.filter == 'Completed') {
+            newlyFiltered = updatedAllTasks
+                .where((t) => t.isCompleted)
+                .toList();
+          } else if (currentState.filter == 'Pending') {
+            newlyFiltered = updatedAllTasks
+                .where((t) => !t.isCompleted)
+                .toList();
+          } else {
+            newlyFiltered = updatedAllTasks;
+          }
+
+          // 5. Emit the new state
+          emit(
+            currentState.copyWith(
+              allTasks: updatedAllTasks,
+              filteredTasks: newlyFiltered,
+            ),
+          );
+        },
+      );
+    }
   }
 }
