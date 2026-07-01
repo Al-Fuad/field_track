@@ -50,7 +50,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await getMeUsecase(NoParams());
 
     result.fold((failure) {
-      log(failure.message.toString());
       if (failure.message.contains('Connection failed') ||
           failure.message.contains('network') ||
           failure.message.contains('Failed to connect')) {
