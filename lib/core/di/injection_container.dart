@@ -28,10 +28,7 @@ Future<void> initDI() async {
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(
-      authRemoteDatasource: sl(),
-      tokenStorage: sl(),
-    ),
+    () => AuthRepositoryImpl(authRemoteDatasource: sl(), tokenStorage: sl()),
   );
 
   // Use cases
@@ -47,6 +44,7 @@ Future<void> initDI() async {
       registerUsecase: sl(),
       logoutUsecase: sl(),
       getMeUsecase: sl(),
+      tokenStorage: sl(),
     ),
   );
 

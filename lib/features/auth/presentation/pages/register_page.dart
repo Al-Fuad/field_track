@@ -4,12 +4,15 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/common/widgets/custom_button.dart';
 import '../../../../core/common/widgets/custom_text_field.dart';
 import '../../../../core/constant/app_color.dart';
+import '../../../../core/routes/route_path.dart';
 import '../bloc/auth_bloc.dart';
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
   @override
   State<RegisterPage> createState() => _RegisterPageState();
 }
+
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -22,6 +25,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _passwordController.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -31,12 +35,14 @@ class _RegisterPageState extends State<RegisterPage> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            context.go('/tasks');
+            context.go(RoutePath.tasks);
           } else if (state is AuthFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.error),
-                backgroundColor: isDark ? AppColor.dangerTextDark : AppColor.dangerTextLight,
+                backgroundColor: isDark
+                    ? AppColor.dangerTextDark
+                    : AppColor.dangerTextLight,
               ),
             );
           }
@@ -77,7 +83,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   Text(
                     'Join your team on FieldTrack',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight,
+                      color: isDark
+                          ? AppColor.textSecondaryDark
+                          : AppColor.textSecondaryLight,
                       fontSize: 16,
                     ),
                   ),
@@ -141,12 +149,12 @@ class _RegisterPageState extends State<RegisterPage> {
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             context.read<AuthBloc>().add(
-                                  AuthRegisterRequested(
-                                    name: _nameController.text.trim(),
-                                    email: _emailController.text.trim(),
-                                    password: _passwordController.text,
-                                  ),
-                                );
+                              AuthRegisterRequested(
+                                name: _nameController.text.trim(),
+                                email: _emailController.text.trim(),
+                                password: _passwordController.text,
+                              ),
+                            );
                           }
                         },
                       );
@@ -160,7 +168,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       Text(
                         "Already have an account? ",
                         style: TextStyle(
-                          color: isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight,
+                          color: isDark
+                              ? AppColor.textSecondaryDark
+                              : AppColor.textSecondaryLight,
                         ),
                       ),
                       GestureDetector(

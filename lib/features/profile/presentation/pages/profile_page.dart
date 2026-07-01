@@ -3,9 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/common/widgets/custom_button.dart';
 import '../../../../core/constant/app_color.dart';
+import '../../../../core/routes/route_path.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../locations/presentation/bloc/locations_bloc.dart';
 import '../../../tasks/presentation/bloc/tasks_bloc.dart';
+
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
   @override
@@ -14,13 +16,11 @@ class ProfilePage extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final primaryColor = isDark ? AppColor.primaryDark : AppColor.primaryLight;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
+      appBar: AppBar(title: const Text('Profile')),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthUnauthenticated || state is AuthInitial) {
-            context.go('/login');
+            context.go(RoutePath.login);
           }
         },
         child: SingleChildScrollView(
@@ -37,15 +37,24 @@ class ProfilePage extends StatelessWidget {
                     email = state.email;
                   }
                   // Get initials
-                  final initials = name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase();
+                  final initials = name
+                      .split(' ')
+                      .map((e) => e.isNotEmpty ? e[0] : '')
+                      .take(2)
+                      .join()
+                      .toUpperCase();
                   return Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColor.surfaceDark : AppColor.surfaceLight,
+                      color: isDark
+                          ? AppColor.surfaceDark
+                          : AppColor.surfaceLight,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDark ? AppColor.borderDark : AppColor.borderLight,
+                        color: isDark
+                            ? AppColor.borderDark
+                            : AppColor.borderLight,
                       ),
                     ),
                     child: Column(
@@ -76,14 +85,19 @@ class ProfilePage extends StatelessWidget {
                         Text(
                           email,
                           style: TextStyle(
-                            color: isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight,
+                            color: isDark
+                                ? AppColor.textSecondaryDark
+                                : AppColor.textSecondaryLight,
                             fontSize: 14,
                           ),
                         ),
                         const SizedBox(height: 16),
                         // Badge
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: primaryColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(100),
@@ -126,7 +140,8 @@ class ProfilePage extends StatelessWidget {
                       builder: (context, state) {
                         String tasksDone = '0/0';
                         if (state is TasksLoaded) {
-                          tasksDone = '${state.completedCount}/${state.totalCount}';
+                          tasksDone =
+                              '${state.completedCount}/${state.totalCount}';
                         }
                         return _buildStatCard(
                           context,
@@ -143,7 +158,9 @@ class ProfilePage extends StatelessWidget {
                       builder: (context, state) {
                         int activeCount = 0;
                         if (state is LocationsLoaded) {
-                          activeCount = state.allLocations.where((loc) => loc.isActive).length;
+                          activeCount = state.allLocations
+                              .where((loc) => loc.isActive)
+                              .length;
                         }
                         return _buildStatCard(
                           context,
@@ -156,15 +173,15 @@ class ProfilePage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              // Settings List Card
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark ? AppColor.surfaceDark : AppColor.surfaceLight,
+              Material(
+                color: isDark ? AppColor.surfaceDark : AppColor.surfaceLight,
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
+                  side: BorderSide(
                     color: isDark ? AppColor.borderDark : AppColor.borderLight,
                   ),
                 ),
+                clipBehavior: Clip.antiAlias,
                 child: Column(
                   children: [
                     _buildSettingsItem(
@@ -210,7 +227,12 @@ class ProfilePage extends StatelessWidget {
       ),
     );
   }
-  Widget _buildStatCard(BuildContext context, {required String title, required String subtitle}) {
+
+  Widget _buildStatCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -225,17 +247,16 @@ class ProfilePage extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight,
+              color: isDark
+                  ? AppColor.textSecondaryDark
+                  : AppColor.textSecondaryLight,
               fontSize: 12,
             ),
           ),
@@ -243,7 +264,12 @@ class ProfilePage extends StatelessWidget {
       ),
     );
   }
-  Widget _buildSettingsItem(BuildContext context, {required IconData icon, required String title}) {
+
+  Widget _buildSettingsItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListTile(
       leading: Container(
@@ -254,29 +280,31 @@ class ProfilePage extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          color: isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight,
+          color: isDark
+              ? AppColor.textSecondaryDark
+              : AppColor.textSecondaryLight,
           size: 20,
         ),
       ),
       title: Text(
         title,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-        ),
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
       ),
       trailing: Icon(
         Icons.chevron_right,
-        color: isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight,
+        color: isDark
+            ? AppColor.textSecondaryDark
+            : AppColor.textSecondaryLight,
         size: 20,
       ),
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$title clicked')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$title clicked')));
       },
     );
   }
+
   Widget _buildDivider(bool isDark) {
     return Divider(
       height: 1,
@@ -287,4 +315,3 @@ class ProfilePage extends StatelessWidget {
     );
   }
 }
-

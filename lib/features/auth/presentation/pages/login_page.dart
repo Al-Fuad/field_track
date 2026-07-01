@@ -4,12 +4,15 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/common/widgets/custom_button.dart';
 import '../../../../core/common/widgets/custom_text_field.dart';
 import '../../../../core/constant/app_color.dart';
+import '../../../../core/routes/route_path.dart';
 import '../bloc/auth_bloc.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
+
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -20,6 +23,7 @@ class _LoginPageState extends State<LoginPage> {
     _passwordController.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -29,12 +33,14 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            context.go('/tasks');
+            context.go(RoutePath.tasks);
           } else if (state is AuthFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.error),
-                backgroundColor: isDark ? AppColor.dangerTextDark : AppColor.dangerTextLight,
+                backgroundColor: isDark
+                    ? AppColor.dangerTextDark
+                    : AppColor.dangerTextLight,
               ),
             );
           }
@@ -73,7 +79,9 @@ class _LoginPageState extends State<LoginPage> {
                         style: theme.textTheme.headlineLarge?.copyWith(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : AppColor.textPrimaryLight,
+                          color: isDark
+                              ? Colors.white
+                              : AppColor.textPrimaryLight,
                         ),
                       ),
                       Text(
@@ -98,7 +106,9 @@ class _LoginPageState extends State<LoginPage> {
                   Text(
                     'Sign in to start your shift',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight,
+                      color: isDark
+                          ? AppColor.textSecondaryDark
+                          : AppColor.textSecondaryLight,
                       fontSize: 16,
                     ),
                   ),
@@ -145,7 +155,11 @@ class _LoginPageState extends State<LoginPage> {
                     child: TextButton(
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Forgot password functionality not implemented')),
+                          const SnackBar(
+                            content: Text(
+                              'Forgot password functionality not implemented',
+                            ),
+                          ),
                         );
                       },
                       style: TextButton.styleFrom(
@@ -172,11 +186,11 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             context.read<AuthBloc>().add(
-                                  AuthLoginRequested(
-                                    email: _emailController.text.trim(),
-                                    password: _passwordController.text,
-                                  ),
-                                );
+                              AuthLoginRequested(
+                                email: _emailController.text.trim(),
+                                password: _passwordController.text,
+                              ),
+                            );
                           }
                         },
                       );
@@ -190,11 +204,13 @@ class _LoginPageState extends State<LoginPage> {
                       Text(
                         "Don't have an account? ",
                         style: TextStyle(
-                          color: isDark ? AppColor.textSecondaryDark : AppColor.textSecondaryLight,
+                          color: isDark
+                              ? AppColor.textSecondaryDark
+                              : AppColor.textSecondaryLight,
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => context.push('/register'),
+                        onTap: () => context.push(RoutePath.register),
                         child: Text(
                           'Register',
                           style: TextStyle(

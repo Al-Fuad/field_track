@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:field_track/core/network/token_storage.dart';
 import 'package:field_track/core/usecase/usecase.dart';
 import 'package:field_track/features/auth/domain/usecases/get_me_usecase.dart';
 import 'package:field_track/features/auth/domain/usecases/login_usecase.dart';
@@ -14,13 +18,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final RegisterUsecase registerUsecase;
   final LogoutUsecase logoutUsecase;
   final GetMeUsecase getMeUsecase;
+  final TokenStorage tokenStorage;
 
   AuthBloc({
     required this.loginUsecase,
     required this.registerUsecase,
     required this.logoutUsecase,
     required this.getMeUsecase,
-  })  : super(AuthInitial()) {
+    required this.tokenStorage,
+  }) : super(AuthInitial()) {
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<AuthLoginRequested>(_onAuthLoginRequested);
     on<AuthRegisterRequested>(_onAuthRegisterRequested);
@@ -32,11 +38,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
+    final token = await tokenStorage.getToken();
+
+    log(token.toString());
+
+    if (token == null || token.isEmpty) {
+      emit(AuthUnauthenticated());
+      return;
+    }
+
     final result = await getMeUsecase(NoParams());
-    result.fold(
-      (failure) => emit(AuthUnauthenticated()),
-      (user) => emit(AuthAuthenticated(name: user.name, email: user.email)),
-    );
+
+    result.fold((failure) {
+      log(failure.message.toString());
+      if (failure.message.contains('Connection failed') ||
+          failure.message.contains('network') ||
+          failure.message.contains('Failed to connect')) {
+        emit(const AuthAuthenticated(name: 'Field User', email: ''));
+      } else {
+        // unawaited(tokenStorage.removeToken());
+        emit(AuthUnauthenticated());
+      }
+    }, (user) => emit(AuthAuthenticated(name: user.name, email: user.email)));
   }
 
   Future<void> _onAuthLoginRequested(
@@ -49,10 +72,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
     result.fold(
       (failure) => emit(AuthFailure(error: failure.message)),
-      (response) => emit(AuthAuthenticated(
-        name: response.user.name,
-        email: response.user.email,
-      )),
+      (response) => emit(
+        AuthAuthenticated(name: response.user.name, email: response.user.email),
+      ),
     );
   }
 
@@ -70,10 +92,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
     result.fold(
       (failure) => emit(AuthFailure(error: failure.message)),
-      (response) => emit(AuthAuthenticated(
-        name: response.user.name,
-        email: response.user.email,
-      )),
+      (response) => emit(
+        AuthAuthenticated(name: response.user.name, email: response.user.email),
+      ),
     );
   }
 
@@ -81,11 +102,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
-    final result = await logoutUsecase(NoParams());
-    result.fold(
-      (failure) => emit(AuthFailure(error: failure.message)),
-      (_) => emit(AuthUnauthenticated()),
-    );
+    unawaited(tokenStorage.removeToken());
+    unawaited(logoutUsecase(NoParams()));
+    emit(AuthUnauthenticated());
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:field_track/core/errors/exceptions.dart';
 import 'package:field_track/core/network/api_client.dart';
@@ -94,9 +96,10 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   @override
   Future<UserModel> me() async {
     try {
-      final response = await _apiClient.post(ApiEndpoint.me);
-      return UserModel.fromJson(response);
+    final response = await _apiClient.get(ApiEndpoint.me);
+    return UserModel.fromJson(response);
     } on DioException catch (e) {
+      log(e.message.toString());
       if (e.response?.data != null && e.response?.data['error'] != null) {
         final errorData = e.response!.data['error'];
         throw ServerException(
